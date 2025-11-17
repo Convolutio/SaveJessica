@@ -10,6 +10,7 @@ changing conditions.
 """
 
 from abc import ABC, abstractmethod
+from typing import Type
 from api_client import SphinxAPIClient
 from data_collector import DataCollector
 import pandas as pd
@@ -27,7 +28,7 @@ class MortyRescueStrategy(ABC):
         """
         self.client = client
         self.collector = DataCollector(client)
-        self.exploration_data = []
+        self.exploration_data: pd.DataFrame
     
     def explore_phase(self, trips_per_planet: int = 30) -> pd.DataFrame:
         """
@@ -203,7 +204,7 @@ class AdaptiveStrategy(MortyRescueStrategy):
         print(f"Success Rate: {(final_status['morties_on_planet_jessica']/1000)*100:.2f}%")
 
 
-def run_strategy(strategy_class, explore_trips: int = 30):
+def run_strategy(strategy_class: Type[MortyRescueStrategy], explore_trips: int = 30):
     """
     Run a complete strategy from exploration to execution.
     

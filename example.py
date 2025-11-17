@@ -96,7 +96,7 @@ def main():
     plot_episode_summary(df)
     
     # Optionally, save all plots
-    # create_all_visualizations(df, output_dir="plots")
+    create_all_visualizations(df, output_dir="plots")
     
     # Step 8: Final status
     print("\n8. Final Status:")
