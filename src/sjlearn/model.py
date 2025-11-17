@@ -2,6 +2,8 @@ from .planets_simulator import PlanetsBehavior
 from .dqn_prioritised_experience_replay import DQNPrioritisedExpReplayAgent, train
 
 from pathlib import Path
+from matplotlib import pyplot as plt
+import numpy as np
 
 def problem_attributes():
     state_dim = 3  # number of Mortys per planets
@@ -23,6 +25,10 @@ def train_model():
         int(target_survival_rate*PlanetsBehavior.MAX_MORTYS_NB)
     )
     mortySenderAgent.save(checkpoint_path())
+    fig, ax = plt.subplots()
+    ax.plot(np.arange(len(scores)), scores)
+    ax.set_title("Scores through the steps and the episodes.")
+    fig.savefig(Path("plots") / "train_scores.png")
 
 def infer_model():
     state_dim, action_dim = problem_attributes()
