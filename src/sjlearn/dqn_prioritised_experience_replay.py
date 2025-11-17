@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
-from .planets_simulator import PlanetsBehavior
+from .planets_simulator import MortysOnPlanetState, PlanetsBehavior
 
 
 # Q-Network
@@ -147,19 +147,27 @@ class DQNPrioritisedExpReplayAgent:
         self.steps_done = 0
         self.episodes_done = 0  # Track episodes for beta annealing
 
-    def select_action(self, state, greedy=False):
+    def select_action(self, state_: MortysOnPlanetState, greedy=False):
+        authorized_number = min(
+            3, PlanetsBehavior.MAX_MORTYS_NB - state_.sum()
+        )
         self.steps_done += 1
+        action = 0
         if not greedy and np.random.rand() <= self.epsilon:
-            return np.random.choice(self.action_dim)
+            action = np.random.choice(self.action_dim)
         else:
             # Convert state (numpy array) to tensor
             # float() ensures it is a float tensor
             # unsqueeze(0) adds batch dimension
-            state = torch.from_numpy(state).float().unsqueeze(0)
+            state = torch.from_numpy(state_).float().unsqueeze(0)
 
             # max(1) returns (value, index). take [1] for the index
             # item() returns the value as a Python number
-            return self.policy_net(state).max(1)[1].item()
+            action = self.policy_net(state).max(1)[1].item()
+        return (
+            3 * (action // 3)  # planet index
+                + min(action % 3, authorized_number - 1)  # mortys to be sent
+        )
 
     def anneal_beta(self, max_episodes=1000):
         """Gradually increase beta from 0.4 to 1.0 over training."""

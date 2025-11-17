@@ -61,7 +61,8 @@ class PlanetsBehavior:
         self.perPlanetMortysSent[planet] += mortysSent
         self.totalSentMorties += mortysSent
         next_state, reward, terminated, truncated, nothing = (
-            self.perPlanetMortysSent, reward,
+            self.perPlanetMortysSent,
+            reward,
             self.totalSentMorties == PlanetsBehavior.MAX_MORTYS_NB,
             False,
             None
