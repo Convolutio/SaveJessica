@@ -57,8 +57,9 @@ class PlanetsBehavior:
             (action // 3, 1 + action % 3)
         )
         assert (mortysSent <= PlanetsBehavior.MAX_MORTYS_NB - self.totalSentMorties), "Too much mortys"
-        reward = mortysSent * self.survivalRate(planet)
+        reward = mortysSent * self.simulatePlanet(self.survivalRate(planet))
         self.perPlanetMortysSent[planet] += mortysSent
+        self.totalSentMorties += mortysSent
         next_state, reward, terminated, truncated, nothing = (
             self.perPlanetMortysSent, reward,
             self.totalSentMorties == PlanetsBehavior.MAX_MORTYS_NB,
