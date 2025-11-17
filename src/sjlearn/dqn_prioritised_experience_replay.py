@@ -8,6 +8,7 @@ import torch.optim as optim
 
 from .planets_simulator import MortysOnPlanetState, PlanetsBehavior
 
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Q-Network
 class DQN(nn.Module):
@@ -134,8 +135,8 @@ class DQNPrioritisedExpReplayAgent:
         self.batch_size = batch_size
         self.target_update = target_update
 
-        self.policy_net = DQN(state_dim, action_dim)
-        self.target_net = DQN(state_dim, action_dim)
+        self.policy_net = DQN(state_dim, action_dim).to(device)
+        self.target_net = DQN(state_dim, action_dim).to(device)
         # copy weights from policy_net to target_net
         self.update_target_net()
 
@@ -159,7 +160,7 @@ class DQNPrioritisedExpReplayAgent:
             # Convert state (numpy array) to tensor
             # float() ensures it is a float tensor
             # unsqueeze(0) adds batch dimension
-            state = torch.from_numpy(state_).float().unsqueeze(0)
+            state = torch.from_numpy(state_).float().to(device).unsqueeze(0)
 
             # max(1) returns (value, index). take [1] for the index
             # item() returns the value as a Python number
@@ -191,25 +192,25 @@ class DQNPrioritisedExpReplayAgent:
 
         # Convert batch-array of Transitions to tensors
         state_batch = torch.cat(
-            [torch.from_numpy(s).float().unsqueeze(0) for s in batch.state]
+            [torch.from_numpy(s).float().to(device).unsqueeze(0) for s in batch.state]
         )
-        action_batch = torch.tensor(batch.action).long().unsqueeze(1)
-        reward_batch = torch.tensor(batch.reward).float()
+        action_batch = torch.tensor(batch.action).long().to(device).unsqueeze(1)
+        reward_batch = torch.tensor(batch.reward).float().to(device)
 
         # Compute state-action values using policy_net
         state_action_values = self.policy_net(state_batch).gather(1, action_batch)
 
         # Compute next state values using target_net
-        next_state_values = torch.zeros(self.batch_size)
+        next_state_values = torch.zeros(self.batch_size, device=device)
         non_final_mask = torch.tensor(
             [next_state is not None for next_state in batch.next_state],
-            dtype=torch.bool,
+            dtype=torch.bool, device=device
         )
 
         # Collect all non-terminal next_states and convert to tensor
         non_final_next_states = torch.cat(
             [
-                torch.from_numpy(next_state).float().unsqueeze(0)
+                torch.from_numpy(next_state).float().to(device).unsqueeze(0)
                 for next_state in batch.next_state
                 if next_state is not None
             ]
