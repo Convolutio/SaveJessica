@@ -20,8 +20,12 @@ The survival probability for each planet **changes over time** based on the numb
 
 ### 1. Install Dependencies
 
+CUDA 13.0 recommended
+
 ```bash
-pip install -r requirements.txt
+pip install .
+# in development
+# pip install -e .
 ```
 
 ### 2. Get Your API Token
