@@ -163,7 +163,7 @@ class DQNPrioritisedExpReplayAgent:
             # max(1) returns (value, index). take [1] for the index
             # item() returns the value as a Python number
             action = cast(int, self.policy_net(state).max(1)[1].item())
-        return 3*action
+        return action
 
     def anneal_beta(self, max_episodes=1000):
         """Gradually increase beta from 0.4 to 1.0 over training."""
@@ -282,7 +282,7 @@ def train(
 
         for step in range(max_steps_per_episode):
             action = agent.select_action(state)
-            next_state, reward, terminated, truncated, _ = env.step(action)
+            next_state, reward, terminated, truncated, _ = env.step(3*action)
             done = terminated or truncated
 
             if done:
