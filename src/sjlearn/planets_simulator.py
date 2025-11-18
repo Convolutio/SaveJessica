@@ -30,7 +30,7 @@ class PlanetsBehavior:
         # and the estimation of the phasis
         self.estimatedPhaseOnPlanets = 1.0
         self.chosen_planets: list[int] = []
-        self.good_trips_in_planets: list[list[bool]] = []
+        self.good_trips_in_planets: list[list[bool]] = [[], [], []]
 
 
     def reset(self):
@@ -49,7 +49,7 @@ class PlanetsBehavior:
         # these are the stacked information about the phasis
         self.estimatedPhaseOnPlanets = init_random_phase()
         self.chosen_planets: list[int] = []
-        self.good_trips_in_planets: list[list[bool]] = []
+        self.good_trips_in_planets: list[list[bool]] = [[], [], []]
         return self.perPlanetMortysSent, None
 
 
