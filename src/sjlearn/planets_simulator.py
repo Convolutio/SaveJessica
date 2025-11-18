@@ -50,7 +50,7 @@ class PlanetsBehavior:
         self.estimatedPhaseOnPlanets = init_random_phase()
         self.chosen_planets: list[int] = []
         self.good_trips_in_planets: list[list[bool]] = [[], [], []]
-        return self.perPlanetMortysSent, None
+        return self.compute_information_state(), None
 
 
     def update_phasis_tracking_information(self, chosen_planet: Planet,
@@ -125,18 +125,11 @@ class PlanetsBehavior:
         """
         return (1 + self.perPlanetMortysSent) * self.estimated_survival_rates()
 
-    def step(self, action: int):
-        planet, mortysSent = cast(
-             tuple[Planet, MortysSentOnPlanet],
-             (
-                action // PlanetsBehavior.PLANET_NUMBER,
-                1 + action % PlanetsBehavior.PLANET_NUMBER
-            )
-        )
-        assert (mortysSent <= PlanetsBehavior.MAX_MORTYS_NB - self.totalSentMorties), "Too much mortys"
-        mortys_has_survived = self.simulatePlanet(self.survivalRate(planet))
-        reward = mortysSent * mortys_has_survived
-        self.update_phasis_tracking_information(planet, mortys_has_survived)
+    def declare_step(self, planet: Planet, mortysSent: int, survived: bool):
+        """Call this function to update the planet model.
+        """
+        reward = mortysSent * survived
+        self.update_phasis_tracking_information(planet, survived)
         self.perPlanetMortysSent[planet] += mortysSent
         self.totalSentMorties += mortysSent
         next_state, reward, terminated, truncated, nothing = (
@@ -147,6 +140,20 @@ class PlanetsBehavior:
             None
         )
         return next_state, reward, terminated, truncated, nothing
+
+    def step(self, action: int):
+        """Call this function during simulation to simulate a step and update the model.
+        """
+        planet, mortysSent = cast(
+             tuple[Planet, MortysSentOnPlanet],
+             (
+                action // PlanetsBehavior.PLANET_NUMBER,
+                1 + action % PlanetsBehavior.PLANET_NUMBER
+            )
+        )
+        assert (mortysSent <= PlanetsBehavior.MAX_MORTYS_NB - self.totalSentMorties), f"Too much mortys (actual: {PlanetsBehavior.MAX_MORTYS_NB - self.totalSentMorties}, new: {mortysSent})"
+        mortys_has_survived = self.simulatePlanet(self.survivalRate(planet))
+        return self.declare_step(planet, mortysSent, mortys_has_survived)
 
 
 type MortysSents = list[bool]

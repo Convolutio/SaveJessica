@@ -1,6 +1,6 @@
 from collections import deque, namedtuple
 from pathlib import Path
-from typing import cast
+from typing import Callable, cast
 
 import numpy as np
 import torch
@@ -149,7 +149,7 @@ class DQNPrioritisedExpReplayAgent:
         self.steps_done = 0
         self.episodes_done = 0  # Track episodes for beta annealing
 
-    def select_action(self, state_: MortysOnPlanetState, greedy=False):
+    def select_action(self, state_: np.ndarray, greedy=False):
         self.steps_done += 1
         action = 0
         if not greedy and np.random.rand() <= self.epsilon:
@@ -164,6 +164,13 @@ class DQNPrioritisedExpReplayAgent:
             # item() returns the value as a Python number
             action = cast(int, self.policy_net(state).max(1)[1].item())
         return action
+
+    def to_trip_action(self, action: int, pb: PlanetsBehavior) -> int:
+        sr = pb.estimated_survival_rates()
+        if action == 0:
+            return np.argmax(sr).item() * pb.PLANET_NUMBER
+        else:
+            return np.random.choice(pb.PLANET_NUMBER) * pb.PLANET_NUMBER
 
     def anneal_beta(self, max_episodes=1000):
         """Gradually increase beta from 0.4 to 1.0 over training."""
@@ -282,7 +289,7 @@ def train(
 
         for step in range(max_steps_per_episode):
             action = agent.select_action(state)
-            next_state, reward, terminated, truncated, _ = env.step(3*action)
+            next_state, reward, terminated, truncated, _ = env.step(agent.to_trip_action(action, env))
             done = terminated or truncated
 
             if done:
