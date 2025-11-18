@@ -6,8 +6,8 @@ from matplotlib import pyplot as plt
 import numpy as np
 
 def problem_attributes():
-    state_dim = 3  # number of Mortys per planets
-    action_dim = 9  # number of Mortys to be sent on a planet in one round
+    state_dim = 3  # survival rates of the three planets
+    action_dim = 3  # number of planets
     return state_dim, action_dim
 
 def checkpoint_path():
@@ -16,15 +16,15 @@ def checkpoint_path():
 def train_model():
     state_dim, action_dim = problem_attributes()
     planet_behavior = PlanetsBehavior()
-    num_episodes = 30
-    max_steps_per_episode = PlanetsBehavior.MAX_MORTYS_NB 
+    num_episodes = 1000
+    max_steps_per_episode = 75  # enough to evaluate the phase (25 is already ok)
     target_survival_rate = 0.8  # we hope
-    mortySenderAgent, scores = train(
+    mortyEarlySenderAgent, scores = train(
         planet_behavior, state_dim, action_dim, num_episodes,
         max_steps_per_episode,
-        int(target_survival_rate*PlanetsBehavior.MAX_MORTYS_NB)
+        int(target_survival_rate*max_steps_per_episode)
     )
-    mortySenderAgent.save(checkpoint_path())
+    mortyEarlySenderAgent.save(checkpoint_path())
     fig, ax = plt.subplots()
     ax.plot(np.arange(len(scores)), scores)
     ax.set_title("Scores through the steps and the episodes.")

@@ -14,7 +14,7 @@ fig, axes = cast(tuple[Figure, tuple[Axes, Axes, Axes]], plt.subplots(3))
 X = np.arange(100)
 
 # sample points with simulation
-nb_samples = 1000
+nb_samples = 25
 chosen_planets = np.random.randint(low=0, high=3, size=(nb_samples,),
                                    dtype=np.int8)
 mortys_have_survived: list[list[bool]] = [[], [], []]
@@ -33,7 +33,10 @@ print("Actual phase:", pb.initialPhaseOnPlanets)
 
 for planet, ax in enumerate(axes):
     fn = pb.function_of_planet(planet)
-    estimate_fn = pb.function_of_planet(planet, try_phase=estimated_phase)
+    estimate_fn = pb.function_of_planet(
+        planet,
+        try_phase=estimated_phase.item()
+    )
     ax.plot(X, fn[:100], label="true")
     ax.plot(X, estimate_fn[:100], label="estimated")
     ax.legend()
