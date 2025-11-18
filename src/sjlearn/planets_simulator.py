@@ -54,15 +54,17 @@ class PlanetsBehavior:
 
 
     def update_phasis_tracking_information(self, chosen_planet: Planet,
-                                           has_one_morty_survived: bool):
+                                           has_one_morty_survived: bool,
+                                           skip_phase_estimation: bool):
         # sample points with simulation
         self.chosen_planets.append(chosen_planet)
         self.good_trips_in_planets[chosen_planet].append(has_one_morty_survived)
         planet_omegas = list(2 * np.pi / np.array(self.periodOnPlanets))
-        self.estimatedPhaseOnPlanets = estimate_phase(
-            self.good_trips_in_planets, planet_omegas,
-            np.array(self.chosen_planets, dtype=np.int8)
-        ).item()
+        if not skip_phase_estimation:
+            self.estimatedPhaseOnPlanets = estimate_phase(
+                self.good_trips_in_planets, planet_omegas,
+                np.array(self.chosen_planets, dtype=np.int8)
+            ).item()
 
     @overload
     def function_of_planet(self, planet: Planet, t: None=None, try_phase: Optional[float]=None) -> np.ndarray[tuple[int],
@@ -125,11 +127,12 @@ class PlanetsBehavior:
         """
         return (1 + self.perPlanetMortysSent) * self.estimated_survival_rates()
 
-    def declare_step(self, planet: Planet, mortysSent: int, survived: bool):
+    def declare_step(self, planet: Planet, mortysSent: int, survived: bool,
+                     skip_phase_estimation=False):
         """Call this function to update the planet model.
         """
         reward = mortysSent * survived
-        self.update_phasis_tracking_information(planet, survived)
+        self.update_phasis_tracking_information(planet, survived, skip_phase_estimation)
         self.perPlanetMortysSent[planet] += mortysSent
         self.totalSentMorties += mortysSent
         next_state, reward, terminated, truncated, nothing = (
