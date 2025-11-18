@@ -1,7 +1,7 @@
 """Simulate the behavior of the planets.
 """
 
-from typing import List, cast
+from typing import cast
 from .types import MortysSentOnPlanet, Planet
 import numpy as np
 
@@ -19,11 +19,15 @@ class PlanetsBehavior:
         # the model below is set from a data visualization
         self.periodOnPlanets = [10, 20, 200]  # in number of mortys
         self.amplitudeOnPlanets = [0.5, 0.5, 0.5]
+
+        # these are the unknown values to be discovered during one episode
+        # in training we simulate them
         self.initialPhaseOnPlanets = [0, 0, 0]
 
 
     def reset(self):
         self.perPlanetMortysSent = np.array([0, 0, 0], dtype=np.int_)
+        self.initialPhaseOnPlanets = [0, 0, 0]
         self.totalSentMorties = 0
         return self.perPlanetMortysSent, None
 
