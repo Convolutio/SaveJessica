@@ -1,5 +1,7 @@
 from typing import cast
 from api_client import SphinxAPIClient
+from sjlearn.dqn_prioritised_experience_replay import DQNPrioritisedExpReplayAgent
+from sjlearn.model import checkpoint_path, problem_attributes, take_action_from_agent
 from strategy import MortyRescueStrategy, run_strategy
 from sjlearn.planets_simulator import PlanetsBehavior
 import pandas as pd
@@ -8,8 +10,10 @@ class FitStrategy(MortyRescueStrategy):
     def __init__(self, client: SphinxAPIClient):
         super().__init__(client)
         self.planet_model = PlanetsBehavior()
-        self.planet_model.reset()
-        self.current_morty_number_in_jessica_planet = 0
+        state_dim, action_dim = problem_attributes()
+        self.confidenceAgent = DQNPrioritisedExpReplayAgent(state_dim, action_dim)
+        self.confidenceAgent.load(checkpoint_path())
+        self.state, _ = self.planet_model.reset()
 
     def explore_phase(self, trips_per_planet: int = 75) -> pd.DataFrame:
         """
@@ -24,18 +28,19 @@ class FitStrategy(MortyRescueStrategy):
         print("\n=== EXPLORATION PHASE ===")
         df = pd.DataFrame([])
         total_number_of_trips = trips_per_planet
-        for _ in range(total_number_of_trips):
+        for total_trips in range(total_number_of_trips):
             # send on the best planet according to our model
-            best_planet, _ = self.planet_model.select_best_estimated_planet()
-            df = self.collector.explore_planet(best_planet, 1)
+            best_planet = take_action_from_agent(
+                self.confidenceAgent,
+                self.planet_model, self.state) // 3
+            result = self.client.send_morties(best_planet, 1)
             # Check the move
-            status = self.client.get_status()
-            morties_on_planet_jessica = cast(int, status['morties_on_planet_jessica'])
-            reward = morties_on_planet_jessica - self.current_morty_number_in_jessica_planet
-            self.current_morty_number_in_jessica_planet = morties_on_planet_jessica
-            survived = reward > 0
+            survived = cast(bool, result["survived"])
             # update the estimated phasis of the model
-            self.planet_model.declare_step(best_planet, 1, survived)
+            self.state, _, _, _, _ = self.planet_model.declare_step(best_planet, 1, survived)
+            if total_trips % 50 == 0:
+                print(f"  Progress: {total_trips+1} trips, "
+                        f"{result['morties_on_planet_jessica']} saved")
         self.exploration_data = df
         return df
 
@@ -105,5 +110,16 @@ if __name__ == "__main__":
     print("\nCurrent strategy:")
     print("1. FitSrategy - Monitor and fit to modeled conditions")
     
-    # Uncomment to run:
-    run_strategy(FitStrategy, explore_trips=75)
+    # Initialize client and strategy
+    client = SphinxAPIClient()
+    strategy = FitStrategy(client)
+    
+    # Start new episode
+    print("Starting new episode...")
+    client.start_episode()
+    
+    # Exploration phase
+    strategy.explore_phase(trips_per_planet=150)
+    
+    # Execute strategy
+    strategy.execute_strategy()

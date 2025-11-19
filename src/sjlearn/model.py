@@ -1,3 +1,4 @@
+from sjlearn.types import Planet
 from .planets_simulator import PlanetsBehavior
 from .dqn_prioritised_experience_replay import DQNPrioritisedExpReplayAgent, train
 
@@ -35,6 +36,11 @@ def train_model():
     ax.plot(np.arange(len(scores)), scores)
     ax.set_title("Scores through the steps and the episodes.")
     fig.savefig(Path("plots") / "train_scores.png")
+
+def take_action_from_agent(model: DQNPrioritisedExpReplayAgent,
+                           planet_behavior: PlanetsBehavior,
+                           state_) -> Planet:
+    return model.to_trip_action(model.select_action(state_), planet_behavior)
 
 def infer_model():
     state_dim, action_dim = problem_attributes()
