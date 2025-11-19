@@ -23,8 +23,8 @@ def train_model():
     state_dim, action_dim = problem_attributes()
     planet_behavior = PlanetsBehavior()
     num_episodes = 1000
-    max_steps_per_episode = 75  # enough to evaluate the phase (25 is already ok)
-    target_survival_rate = 0.95  # we hope
+    max_steps_per_episode = 200  # max period
+    target_survival_rate = 0.80  # we hope
     mortyEarlySenderAgent, scores = train(
         planet_behavior, state_dim, action_dim,
         num_episodes,

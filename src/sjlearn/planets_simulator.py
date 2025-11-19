@@ -94,7 +94,7 @@ class PlanetsBehavior:
         # according to the number of mortys sent on the planet
         # the period depends on the planet and has been observed with data
         # visualization
-        t = self.totalSentMorties
+        t = self.perPlanetMortysSent[planet]
         return self.function_of_planet(planet, t)
 
     def estimatedSurivalRate(self, planet: Planet) -> float:
@@ -124,8 +124,11 @@ class PlanetsBehavior:
     def compute_information_state(self):
         """The estimated survival rate weighted by the number of mortys on each
         planet bring information about the current state of the game.
+
+        To keep a small space of input states, we modulo the number of mortys
+        on received on a planet by the period of the planets
         """
-        return (1 + self.perPlanetMortysSent) * self.estimated_survival_rates()
+        return (1 + self.perPlanetMortysSent % np.array(self.periodOnPlanets)) * self.estimated_survival_rates()
 
     def declare_step(self, planet: Planet, mortysSent: int, survived: bool,
                      skip_phase_estimation=False):

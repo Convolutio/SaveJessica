@@ -167,10 +167,11 @@ class DQNPrioritisedExpReplayAgent:
 
     def to_trip_action(self, action: int, pb: PlanetsBehavior) -> int:
         sr = pb.estimated_survival_rates()
-        if action == 0:
-            return np.argmax(sr).item() * pb.PLANET_NUMBER
-        else:
-            return np.random.choice(pb.PLANET_NUMBER) * pb.PLANET_NUMBER
+        planet = np.argmax(sr).item() if action == 0 else np.random.choice(
+            pb.PLANET_NUMBER
+        )
+        nb_of_mortys = 3 if sr[planet] >= 0.9 else 2 if sr[planet] >= 0.8 else 1
+        return planet * pb.PLANET_NUMBER + nb_of_mortys - 1
 
     def anneal_beta(self, max_episodes=1000):
         """Gradually increase beta from 0.4 to 1.0 over training."""

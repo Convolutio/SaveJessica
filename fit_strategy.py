@@ -30,18 +30,22 @@ class FitStrategy(MortyRescueStrategy):
         total_number_of_trips = trips_per_planet
         for total_trips in range(total_number_of_trips):
             # send on the best planet according to our model
-            best_planet = take_action_from_agent(
+            action = take_action_from_agent(
                 self.confidenceAgent,
                 self.planet_model, self.state) // 3
-            result = self.client.send_morties(best_planet, 1)
+            best_planet = action // 3
+            nb_morties = 1 + action % 3
+            result = self.client.send_morties(best_planet, nb_morties)
             # Check the move
             survived = cast(bool, result["survived"])
             # update the estimated phasis of the model
-            self.state, _, _, _, _ = self.planet_model.declare_step(best_planet, 1, survived)
+            self.state, _, _, _, _ = self.planet_model.declare_step(best_planet, nb_morties, survived)
             if total_trips % 50 == 0:
                 print(f"  Progress: {total_trips+1} trips, "
                         f"{result['morties_on_planet_jessica']} saved")
         self.exploration_data = df
+        print(f"  Progress: {total_trips+1} trips, "
+                f"{result['morties_on_planet_jessica']} saved")
         return df
 
 
@@ -119,7 +123,7 @@ if __name__ == "__main__":
     client.start_episode()
     
     # Exploration phase
-    strategy.explore_phase(trips_per_planet=150)
+    strategy.explore_phase(trips_per_planet=400)
     
     # Execute strategy
     strategy.execute_strategy()
