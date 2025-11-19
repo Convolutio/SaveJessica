@@ -38,10 +38,15 @@ pip install .
 echo "SPHINX_API_TOKEN=your_token_here" > .env
 ```
 
-### 3. Run the Example
+### 3. Train and infer
 
-```bash
-python example.py
+```sh
+# in the venv
+train_mortys_sender
+```
+
+```sh
+python fit_strategy.py
 ```
 
 ### Console Output
